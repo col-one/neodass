@@ -21,7 +21,7 @@ class NeoDb(object):
         self.login = login
         self.password = password
         py2neo.authenticate(self.host, self.login, self.password)
-        self.graph = py2neo.Graph("http://{0}:7474/db/data".format(self.host))
+        self.graph = py2neo.Graph("http://{0}:7474/db/data".format(self.host), bolt=False, secure=False)
         self.Node = py2neo.Node
         self.Relationship = py2neo.Relationship
         self.create = self.graph.create
@@ -77,7 +77,7 @@ class Version(GraphObject, NodeAddOn):
         creator : user
         date : 201612120830
     """
-    __primarykey__ = "name"
+    #__primarykey__ = "name"
 
     #Properties
     name = Property()
@@ -133,6 +133,17 @@ class User(GraphObject, NodeAddOn):
     #Related OUTGOING
     lock = RelatedTo("Asset")
 
+class Task(GraphObject):
+    """
+    Task hold the info of various task
+    """
+    __primarykey__ = "name"
+    # add properties
+    name = Property()
+    # relations INCOMING
+    asset_lib = RelatedFrom("AssetLib", "ASSET LIB")
+    asset_shot = RelatedFrom("AssetShot", "ASSET SHOT")
+
 class Asset(GraphObject, NodeAddOn):
     """
     Base asset node who handle asset information.
@@ -157,10 +168,12 @@ class Asset(GraphObject, NodeAddOn):
     code = Property()
     variation = Property()
 
+
     #relations OUTGOING
     current = RelatedTo(Version)
     version = RelatedTo(Version)
     cache = RelatedTo(Media)
+    task = RelatedTo(Task)
 
     #relations INCOMING
     locked_by = RelatedFrom("User", "LOCK")
@@ -186,6 +199,7 @@ class AssetLib(Asset, NodeAddOn):
     # add properties
     collection = Property()
     family = Property()
+
 
 
 # shot = AssetShot()
