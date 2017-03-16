@@ -68,8 +68,8 @@ class NeoDassObject(object):
         return version_dict
 
 
-def create_assetlib(graph=GRAPH, name='', type='lib', code='', creator='', collection='',
-                    variation='', task=None, push=True, match_if=False):
+def create_assetlib(graph=GRAPH, name='', type='lib', code='', creator='', collection='', variation='', task=None,
+                    push=True, match_if=False):
     check = get_assetlib(graph, code=code)
     if len(check) != 0:
         if match_if:
