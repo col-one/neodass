@@ -85,6 +85,7 @@ class Version(GraphObject, NodeAddOn):
     comment = Property()
     creator = Property()
     date = Property()
+    modification_date = Property()
     flag = Property()
 
     #Related INCOMING
@@ -112,6 +113,7 @@ class Media(GraphObject, NodeAddOn):
     file = Property()
     type = Property()
     multi_files = Property()
+    hash = Property()
 
     #related INCOMING
     use = RelatedFrom(Version, "USE")
@@ -199,6 +201,11 @@ class AssetLib(Asset, NodeAddOn):
     # add properties
     collection = Property()
     family = Property()
+
+    #relations OUTGOING
+    inside = RelatedTo("Asset")
+    #relations INCOMING
+    depends = RelatedFrom("Asset", "DEPENDS")
 
 
 

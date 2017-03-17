@@ -1,11 +1,27 @@
 import os
+import time
 import filecmp
 import py2neo
 import neodb
 import errors
+import hashlib
 
 py2neo.authenticate("192.168.2.250", "neo4j", "tnzpvgeek")
-GRAPH = py2neo.Graph("http://neo4j:tnzpvgeek@192.168.2.250:7474/db/data", bolt=False)
+#GRAPH = py2neo.Graph("http://neo4j:tnzpvgeek@192.168.2.250:7474/db/data", bolt=False)
+
+class Graph(py2neo.Graph):
+    def __init__(self, *args, **kwargs):
+        super(Graph, self).__init__(*args, **kwargs)
+    
+    def push(self, subgraph):
+        try:
+            subgraph.modification_date = time.time()
+        except:
+            print "Failllll to mod time"
+        super(Graph, self).push(subgraph)
+
+
+GRAPH = Graph("http://neo4j:tnzpvgeek@192.168.2.250:7474/db/data", bolt=False)
 
 class NeoDassObject(object):
     def __init__(self, asset):
@@ -14,6 +30,7 @@ class NeoDassObject(object):
     def create_version(self, comment='no comment', to_current=False, media='', graph=GRAPH, push=True):
         if not os.path.isfile(media):
             raise IOError("Media doesn't exist")
+        md5 = hashlib.md5(open(media, 'rb').read()).hexdigest()
         media_asset = neodb.Media()
         versions_nodes = self.asset.version
         print list(versions_nodes)
@@ -40,6 +57,7 @@ class NeoDassObject(object):
         media_asset.name = media_name
         media_asset.multi_files = 'False'
         media_asset.file = media
+        media_asset.hash = md5
         media_asset.type = os.path.splitext(media_name)[-1]
         print version
         version.use.add(media_asset)
@@ -82,6 +100,7 @@ def create_assetlib(graph=GRAPH, name='', type='lib', code='', creator='', colle
     asset.creator = creator
     asset.collection = collection
     asset.variation = variation
+    asset.date = time.time()
     asset.task.clear()
     asset.task.add(task)
     if push is True:
@@ -108,5 +127,6 @@ def get_task(task, graph=GRAPH):
 
 
 danael = get_assetlib(code='A001')[0]
-print danael.action.get_versionlib()['003'].comment
-
+danaelbave = get_assetlib(code='A001d')[0]
+danaelbave.action.create_version(media="T:\software\Guerilla Render\guerilla.exe")
+GRAPH.push(danael)
