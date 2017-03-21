@@ -10,18 +10,19 @@ py2neo.authenticate("192.168.2.250", "neo4j", "tnzpvgeek")
 #GRAPH = py2neo.Graph("http://neo4j:tnzpvgeek@192.168.2.250:7474/db/data", bolt=False)
 
 class Graph(py2neo.Graph):
-    def __init__(self, *args, **kwargs):
-        super(Graph, self).__init__(*args, **kwargs)
+    def __init__(self, bolt=False, secure=False, host='localhost', http_port=7474, user='neo4j', password='neo4j'):
+        self.uri = "http://{user}:{pw}@{host}:{port}/db/data".format(user=user, pw=password, host=host, port=http_port)
+        super(Graph, self).__init__(self.uri, bolt=False, secure=False)
     
     def push(self, subgraph):
         try:
             subgraph.modification_date = time.time()
         except:
-            print "Failllll to mod time"
+            print "{0} doesn't have modification_date property".format(subgraph)
         super(Graph, self).push(subgraph)
 
 
-GRAPH = Graph("http://neo4j:tnzpvgeek@192.168.2.250:7474/db/data", bolt=False)
+GRAPH = Graph(host='137.74.198.16', password='tamere')
 
 class NeoDassObject(object):
     def __init__(self, asset):
@@ -86,8 +87,8 @@ class NeoDassObject(object):
         return version_dict
 
 
-def create_assetlib(graph=GRAPH, name='', type='lib', code='', creator='', collection='', variation='', task=None,
-                    push=True, match_if=False):
+def create_assetlib(graph=GRAPH, name='', type='lib', code='', creator='', collection=neodb.Collection,
+                    variation='', task=neodb.Task, push=True, match_if=False):
     check = get_assetlib(graph, code=code)
     if len(check) != 0:
         if match_if:
@@ -98,11 +99,13 @@ def create_assetlib(graph=GRAPH, name='', type='lib', code='', creator='', colle
     asset.type = type
     asset.code = code
     asset.creator = creator
-    asset.collection = collection
+    asset.collection.add(collection)
+    collection.asset_lib.add(asset)
     asset.variation = variation
     asset.date = time.time()
     asset.task.clear()
     asset.task.add(task)
+    task.asset_lib.add(asset)
     if push is True:
         graph.push(asset)
     asset.action = NeoDassObject(asset)
@@ -125,8 +128,26 @@ def get_assetlib(graph=GRAPH, **kwargs):
 def get_task(task, graph=GRAPH):
     return list(neodb.Task.select(graph).where("_.name = '{0}'".format(task)))[0]
 
+def get_collection(collection, graph=GRAPH):
+    return list(neodb.Collection.select(graph).where("_.name = '{0}'".format(collection)))[0]
 
-danael = get_assetlib(code='A001')[0]
-danaelbave = get_assetlib(code='A001d')[0]
-danaelbave.action.create_version(media="T:\software\Guerilla Render\guerilla.exe")
-GRAPH.push(danael)
+# # create danael task et collection
+task = neodb.Task()
+task.name = 'rig'
+collection = neodb.Collection()
+collection.name = 'chars'
+danael = create_assetlib(name="Danael", code='A001', task=task, collection=collection, match_if=True)
+
+
+t = get_collection('chars')
+dd = t.asset_lib
+for d in dd:
+    print d
+
+
+
+#
+# danael = get_assetlib(code='A001')[0]
+# danaelbave = get_assetlib(code='A001d')[0]
+# danaelbave.action.create_version(media="T:\software\Guerilla Render\guerilla.exe")
+# GRAPH.push(danael)

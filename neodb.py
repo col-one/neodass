@@ -146,6 +146,17 @@ class Task(GraphObject):
     asset_lib = RelatedFrom("AssetLib", "ASSET LIB")
     asset_shot = RelatedFrom("AssetShot", "ASSET SHOT")
 
+class Collection(GraphObject):
+    """
+    Task hold the info of various task
+    """
+    __primarykey__ = "name"
+    # add properties
+    name = Property()
+
+    # relations INCOMING
+    asset_lib = Related("AssetLib", "ASSET LIB")
+
 class Asset(GraphObject, NodeAddOn):
     """
     Base asset node who handle asset information.
@@ -192,6 +203,7 @@ class AssetShot(Asset, NodeAddOn):
     episode = Property()
     shot = Property()
 
+
 class AssetLib(Asset, NodeAddOn):
     """
     AssetLib derived from Asset
@@ -199,11 +211,12 @@ class AssetLib(Asset, NodeAddOn):
     #redef primary key to code
     __primarykey__ = "code"
     # add properties
-    collection = Property()
     family = Property()
 
     #relations OUTGOING
     inside = RelatedTo("Asset")
+    collection = Related("Collection", "COLLECTION")
+
     #relations INCOMING
     depends = RelatedFrom("Asset", "DEPENDS")
 
@@ -246,3 +259,13 @@ class AssetLib(Asset, NodeAddOn):
 # props.creator = 'Colin'
 # props.collection = 'Props'
 # graph.push(props)
+
+class A1(GraphObject):
+
+    rFrom = RelatedFrom("A2", "A2")
+
+class A2(GraphObject):
+
+    rTo = RelatedTo("A1", "A1")
+
+
